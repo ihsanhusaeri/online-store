@@ -12,38 +12,36 @@ import (
 )
 
 func main() {
-	// hostName := os.Getenv("HOSTNAME")
-	// user := os.Getenv("USER")
-	// password := os.Getenv("PASSWORD")
+	// hostName := os.Getenv("DB_HOST")
+	// user := os.Getenv("DB_USER")
+	// password := os.Getenv("DB_PASSWORD")
 	// dbname := os.Getenv("DB_NAME")
 	// port := os.Getenv("PORT")
-	// sslmode := os.Getenv("SSL_MODE")
-	// timeZone := os.Getenv("TIME_ZONE")
 
 	hostName := "localhost"
 	user := "postgres"
 	password := "ihsan123"
 	dbname := "online_store"
 	port := "5432"
-	sslmode := "disable"
-	timeZone := "Asia/Jakarta"
 
+	// buat struct untuk keperluan credential database
 	db := database.Database{
 		Hostname: hostName,
 		User:     user,
 		Password: password,
 		DBName:   dbname,
 		Port:     port,
-		SSLMode:  sslmode,
-		TimeZone: timeZone,
 	}
-	gormDB, err := database.NewGormDatabase(db)
+	//buat instance database
+	gormDB, err := database.NewPostgresDatabase(db)
 	if err != nil {
 		panic(err)
 	}
 
-	// create router instance and apply appropriate middlewares
+	// buat instance fiber
 	app := fiber.New()
+
+	//setting cors
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "*",
 		AllowHeaders:     "*",
@@ -51,13 +49,30 @@ func main() {
 		AllowCredentials: false,
 		ExposeHeaders:    "*",
 	}))
+
+	//tambahkan log
 	app.Use(logger.New(), recover.New())
 
+	//Proses dependency injection
+
+	/*
+		repository merupakan layer yang melakukan query ke database
+	*/
 	orderRepo := repository.NewOrderRepository(gormDB)
 	itemRepo := repository.NewItemRepository(gormDB)
+
+	/*
+		Service merupakan layer bussines logic yang menghubungkan handler dan repository.
+	*/
 	orderService := service.NewOrderService(orderRepo, itemRepo)
+
+	/*
+		Handler merupakan layer yang pertama kali menerima data (params/body) yang dikirimkan client.
+		Dalam layer ini juga didefinisikan api-api yang tersedia.
+	*/
 	handler.NewOrderHandler(app, orderService)
 
+	//jalankan goroutine cronjob untuk melakukan pengecekan expired order
 	cron := make(chan error)
 
 	go func(cron chan error) { cron <- orderService.CheckExpiredCheckout(1) }(cron)

@@ -24,6 +24,8 @@ func NewOrderHandler(app *fiber.App, orderS service.OrderService) {
 	orderGroup.Put("/:id", handler.Update)
 
 }
+
+// route yang dihit ketika akan membuat order
 func (o *orderHandler) Create(c *fiber.Ctx) error {
 	var order entity.Order
 	if err := c.BodyParser(&order); err != nil {
@@ -36,12 +38,16 @@ func (o *orderHandler) Create(c *fiber.Ctx) error {
 	return helper.WriteResponse(c, response)
 }
 
+//route yang dihit ketika akan mengubah data order
+// misalnya update status ke checkout/paid
 func (o *orderHandler) Update(c *fiber.Ctx) error {
 	paramsId := c.Params("id")
+	//cek apakah id kosong
 	if paramsId == "" {
 		return helper.WriteResponse(c, entity.NewResponse(http.StatusBadRequest, "id cannot be empty", struct{}{}))
 	}
 
+	//convert ke uint
 	id, err := strconv.ParseUint(paramsId, 10, 64)
 
 	if err != nil {

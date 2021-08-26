@@ -32,13 +32,20 @@ func NewOrderService(repo repository.OrderRepository, itemR repository.ItemRepos
 	}
 }
 
+//Create digunakan untuk membuat data order
 func (o *orderService) Create(ctx context.Context, order entity.Order) entity.Response {
+	//mapping data order items
 	for _, item := range order.OrderItems {
+		//dapatkan data item
 		responseItem := o.itemRepo.Get(ctx, item.ItemId)
+		// jika terjadi error (response code != 200) maka return response
 		if responseItem.Code != http.StatusOK {
 			return responseItem
 		}
+		//cast data interface{} ke Item
 		itemData := responseItem.Data.(entity.Item)
+
+		//cek apakah qty order melebihi stock item
 		if item.ItemQty > itemData.Stock {
 			return entity.NewResponse(http.StatusBadRequest, "Jumlah order melebihi stock item tersedia", struct{}{})
 		}
@@ -47,13 +54,20 @@ func (o *orderService) Create(ctx context.Context, order entity.Order) entity.Re
 	return response
 }
 
+// Update digunakan untuk mengubah data order
 func (o *orderService) Update(ctx context.Context, id uint, status string) entity.Response {
+	//get existing order
 	response := o.orderRepo.Get(ctx, id)
+
+	// jika terjadi error (response code != 200) maka return response
 	if response.Code != http.StatusOK {
 		return response
 	}
+	//cast data interface{} ke Order
 	order := response.Data.(entity.Order)
 	order.Status = status
+
+	//jika status order diubah ke checkout maka set checkout_expired_at +5 menit setelah checkout
 	if order.Status == consts.Checkout {
 		expired := time.Now().Local().Add(time.Minute * time.Duration(5))
 		order.CheckoutExpiredAt = &expired
@@ -61,6 +75,9 @@ func (o *orderService) Update(ctx context.Context, id uint, status string) entit
 	return o.orderRepo.Update(ctx, order)
 }
 
+//CheckExpiredCheckout adalah cronjob function yang dijalankan setiap jangka waktu tertentu (sesuai parameter intervalMinute)
+// function ini digunakan untuk mengecek order-order yang masih checkout dan sudah melewati batas checkout_expired_at
+// order-order tersebut akan diubah statusnya menjadi expired dan stock item akan dikembalikan ke angka semula
 func (o *orderService) CheckExpiredCheckout(intervalMinute int) error {
 	log.Printf("Running cron on every %d minutes to check expired checkout\n", intervalMinute)
 	c := cron.New()
@@ -81,6 +98,8 @@ func (o *orderService) CheckExpiredCheckout(intervalMinute int) error {
 
 func (o *orderService) checkExpiredCheckout(intervalMinute int) error {
 	ctx := context.Background()
+
+	//get semua expired order
 	expiredOrders, err := o.orderRepo.GetExpiredCheckout(ctx)
 
 	if err != nil {
@@ -88,6 +107,7 @@ func (o *orderService) checkExpiredCheckout(intervalMinute int) error {
 	}
 
 	for _, order := range expiredOrders {
+		//set status order ke expired
 		order.Status = consts.Expired
 		response := o.orderRepo.Update(ctx, order)
 

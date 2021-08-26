@@ -24,6 +24,7 @@ func NewItemRepository(db *gorm.DB) ItemRepository {
 	}
 }
 
+//Get digunakan untuk mendapatkan satu data item sesuai id yang dikirim
 func (o *itemRepository) Get(ctx context.Context, id uint) entity.Response {
 	var item entity.Item
 	err := o.db.WithContext(ctx).Model(entity.Item{}).Where("id=?", id).First(&item).Error

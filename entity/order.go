@@ -11,7 +11,7 @@ type Order struct {
 	UserId            uint        `json:"userId"`
 	UserName          string      `json:"userName"`
 	TotalPay          float64     `json:"totalPay"`
-	Status            string      `json:"status" gorm:"default:cart"`
+	Status            string      `json:"status" gorm:"default:cart"` //car sebagai default value untuk status
 	CheckoutExpiredAt *time.Time  `json:"checkoutExpiredAt"`
 	OrderItems        []OrderItem `json:"orderItems"`
 }
