@@ -73,7 +73,7 @@ func (o *orderRepository) Update(ctx context.Context, order entity.Order) entity
 	if err != nil {
 		log.Println(err)
 		// jika error yang terjadi karena stock item < 0 maka kondisi return error berikut
-		// notes: akan lebih tepat jika menggunakan fungsi errors.Is tapi saya belum menemukan error type untuk contrainst violate
+		// notes: akan lebih tepat jika menggunakan fungsi errors.Is tapi saya belum menemukan error type untuk contrainst violate error
 		if strings.Contains(err.Error(), "constraint") {
 			return entity.NewResponse(http.StatusBadRequest, "Jumlah order melebihi stock item tersedia", struct{}{})
 		}

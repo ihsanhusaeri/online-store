@@ -45,6 +45,12 @@ func (o *orderService) Create(ctx context.Context, order entity.Order) entity.Re
 		//cast data interface{} ke Item
 		itemData := responseItem.Data.(entity.Item)
 
+		//cek apakah stock item tersedia
+		if itemData.Stock == 0 {
+			return entity.NewResponse(http.StatusBadRequest, "Stock item ini kosong", struct{}{})
+
+		}
+
 		//cek apakah qty order melebihi stock item
 		if item.ItemQty > itemData.Stock {
 			return entity.NewResponse(http.StatusBadRequest, "Jumlah order melebihi stock item tersedia", struct{}{})
