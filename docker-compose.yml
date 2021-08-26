@@ -1,0 +1,41 @@
+version: '3'
+services:
+  storeapp:
+    container_name: storeapp
+    build: .
+    ports: 
+      - 8080:8080 
+    restart: on-failure
+    depends_on:
+      - stores-postgres
+    networks:
+      - store-net
+    environment:
+      - DB_HOSTNAME=${DB_HOSTNAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - SSL_MODE=${SSL_MODE}
+      - TIME_ZONE=${TIME_ZONE}
+  stores-postgres:
+    image: postgis/postgis:13-3.1-alpine
+    container_name: store_db_postgres
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - DATABASE_HOST=stores-postgres
+    ports:
+      - '5431:5432'
+    volumes:
+      - database_postgis:/var/lib/postgresql/data
+    networks:
+      - store-net
+
+volumes:
+  database_postgis:
+
+networks:
+  food-net:
+    driver: bridge

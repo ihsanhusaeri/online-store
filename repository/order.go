@@ -39,10 +39,17 @@ func (o *orderRepository) Create(ctx context.Context, order entity.Order) entity
 }
 func (o *orderRepository) Update(ctx context.Context, order entity.Order) entity.Response {
 	err := o.db.Transaction(func(tx *gorm.DB) error {
-		// do some database operations in the transaction (use 'tx' from this point, not 'db')
-		for _, item := range order.OrderItems {
-			if err := tx.Model(entity.Item{}).Where("id = ?", item.ItemId).UpdateColumn("stock", gorm.Expr("stock - ?", item.ItemQty)).Error; err != nil {
-				return err
+		if order.Status == consts.Checkout || order.Status == consts.Expired {
+			var expression string
+			if order.Status == consts.Checkout {
+				expression = "stock - ?"
+			} else {
+				expression = "stock + ?"
+			}
+			for _, item := range order.OrderItems {
+				if err := tx.Model(entity.Item{}).Where("id = ?", item.ItemId).UpdateColumn("stock", gorm.Expr(expression, item.ItemQty)).Error; err != nil {
+					return err
+				}
 			}
 		}
 
@@ -50,7 +57,6 @@ func (o *orderRepository) Update(ctx context.Context, order entity.Order) entity
 			return err
 		}
 
-		// return nil will commit the whole transaction
 		return nil
 	})
 	if err != nil {
