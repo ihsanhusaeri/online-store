@@ -98,7 +98,7 @@ func (o *orderRepository) Get(ctx context.Context, id uint) entity.Response {
 // GetExpiredCheckout digunakan untuk mendapatkan list order yang masih checkout dan sudah melewati batas checkout_expired_at
 func (o *orderRepository) GetExpiredCheckout(ctx context.Context) ([]entity.Order, error) {
 	var orders []entity.Order
-	err := o.db.WithContext(ctx).Model(entity.Order{}).Where("status=? and checkout_expired_at <= now()", consts.Checkout).Find(&orders).Error
+	err := o.db.WithContext(ctx).Model(entity.Order{}).Joins("left join order_items on order_items.order_id = orders.id").Preload("OrderItems").Where("status=? and checkout_expired_at <= now()", consts.Checkout).Find(&orders).Error
 	if err != nil {
 		log.Println(err)
 		return []entity.Order{}, err
