@@ -13,7 +13,7 @@ type Order struct {
 	TotalPay          float64     `json:"totalPay"`
 	Status            string      `json:"status" gorm:"default:cart"`
 	CheckoutExpiredAt *time.Time  `json:"checkoutExpiredAt"`
-	OrderItem         []OrderItem `json:"orderItem"`
+	OrderItems        []OrderItem `json:"orderItems"`
 }
 
 type OrderItem struct {
