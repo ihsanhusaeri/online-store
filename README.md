@@ -22,6 +22,29 @@
    ```bash
    go run main.go
    ```
+# List API
+1. POST **localhost:8080/order** untuk membuat order. Contoh body:
+   ```bash
+   {
+    "userId": 1,
+    "userName": "Ahmad",
+    "totalPay": 30000,
+    "orderItems": [
+        {
+            "itemId": 1,
+            "itemName": "buku",
+            "itemPrice": 15000,
+            "itemQty": 2
+        }
+    ]
+   }
+   ```
+2. PUT **localhost:8080/order/:id** untuk mengubah status order. Contoh body:
+   ```bash
+   {
+    "status": "checkout"
+   }
+   ```
 # Kekurangan
 1. Containerize belum work.
 2. Unit testing belum work.
