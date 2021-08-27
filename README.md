@@ -16,7 +16,7 @@
    go get -u ./...
    ```
 3. Install database postgresql
-4. Buat database dengan nama **online-store**
+4. Buat database dengan nama **online_store**
 5. Isi credential database (db_host, db_user, db_port, db_password, db_name) di file **main.go**
 6. Jalankan program 
    ```bash
